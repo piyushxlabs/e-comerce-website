@@ -1,0 +1,71 @@
+'use client';
+
+import { useState } from 'react';
+import { PRODUCTS } from '../../data/products';
+import { useFilter } from '../../context/FilterContext';
+import { useFilteredProducts } from '../../hooks/useFilteredProducts';
+import ProductCard from './ProductCard';
+import ProductQuickView from './ProductQuickView';
+import FilterBar from '../filters/FilterBar';
+import type { Product } from '../../types/product';
+import { PackageSearch } from 'lucide-react';
+
+export default function ProductGrid() {
+  const { filters } = useFilter();
+  const filtered = useFilteredProducts(PRODUCTS, filters);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+
+  return (
+    <section aria-label="Product catalog">
+      {/* ─── Filters ──────────────────────────────────────── */}
+      <div className="mb-8">
+        <FilterBar resultCount={filtered.length} />
+      </div>
+
+      {/* ─── Grid ─────────────────────────────────────────── */}
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-32 gap-6">
+          <div className="w-20 h-20 border border-[#E5E1DA] bg-white rounded-none flex items-center justify-center">
+            <PackageSearch size={32} className="text-[#999999]" />
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-light text-[#1A1A1A] mb-2">
+              No products found
+            </p>
+            <p className="text-sm text-[#666666] font-light">
+              Try adjusting your filters or search query.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          role="list"
+          aria-label="Products"
+        >
+          {filtered.map((product, index) => (
+            <div
+              key={product.id}
+              role="listitem"
+              className="animate-fade-up h-full flex flex-col"
+              style={{ animationDelay: `${Math.min(index * 50, 400)}ms`, animationFillMode: 'both' }}
+            >
+              <ProductCard
+                product={product}
+                onQuickView={setQuickViewProduct}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Quick View Modal ─────────────────────────────── */}
+      {quickViewProduct && (
+        <ProductQuickView
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+        />
+      )}
+    </section>
+  );
+}
